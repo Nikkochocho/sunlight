@@ -33,7 +33,10 @@
 #define __ENABLE_FPS_SHOW_LABEL     true
 #define __DEFAULT_MAP_ALIGNMENT     SunLight :: TileMap :: ITileMap :: MapAlignment :: MAP_ALIGNMENT_CENTER
 #define __TMX_MAP_FILE              "resources/map/test.tmx"
-#define __GAME_NAME                 "TileMap renderer test"
+#define __SUNNY_SPRITE_IDLE         "resources/sprites/sunny_idle_down.png"
+#define __SUNNY_SPRITE_IDLE_DELAY   100
+#define __SUNNY_LAYER_ID            4
+#define __GAME_NAME                 "Sprite test"
 
 
 /**
@@ -99,6 +102,30 @@ void World :: ResetZoom( SunLight :: Input :: ControllerType type, int nId )  {
     m_pRenderer -> ResetZoom();
 }
 
+bool World :: LoadSprites( void ) {
+
+    if( ( m_pRenderer != NULL ) && m_pCanvasSunny -> Load( m_strBasePath + __SUNNY_SPRITE_IDLE ) ) {
+        SunLight :: TileMap :: stDimension2D    dim;
+
+        dim.pos.x = 100;
+        dim.pos.y = 100;
+        dim.size.nWidth  = 32;
+        dim.size.nHeight = 32;
+
+        m_pCanvasSunny -> SetTileSize( 32 );
+        m_pCanvasSunny -> SetAnimationMode( SunLight :: Canvas :: AnimationMode :: TEXTURE_ANIMATION_MODE_AUTOMATIC_CIRCULAR );
+        m_pCanvasSunny -> SetDimension2D( dim );
+        m_pSpriteSunny -> AddTextureSequence( 0, m_pCanvasSunny, __SUNNY_SPRITE_IDLE_DELAY );
+        m_pSpriteSunny -> SetActiveTextureSequence( 0 );
+        m_pSpriteSunny -> SetVisible( true );
+
+        m_pRenderer -> AddSprite( __SUNNY_LAYER_ID, *m_pSpriteSunny );
+        
+        return true;
+    }
+    return false;
+}
+
 /**
  * @brief Constructor. Initializes class data by reading base path.
  * 
@@ -112,6 +139,8 @@ World :: World( std :: string strBasePath )  {
                                                                __GAME_NAME,
                                                                __FRAMES_PER_SECOND,
                                                                false );
+    m_pSpriteSunny = new SunLight :: Sprite :: Sprite();
+    m_pCanvasSunny = new SunLight :: Canvas :: TextureCanvas();
 }
 
 /**
@@ -119,6 +148,8 @@ World :: World( std :: string strBasePath )  {
  */
 World :: ~World( void )  {
     delete m_pRenderer;
+    delete m_pSpriteSunny;
+    delete m_pCanvasSunny;
 }
 
 /**
@@ -167,6 +198,11 @@ bool World :: Run( void )  {
         perror("Error loading map\n" );
         return false;
     } 
+
+    if( !LoadSprites() )  {
+        perror("Error loading sprites\n" );
+        return false;
+    }
 
     m_pRenderer -> Run();
     m_pRenderer -> Stop();
